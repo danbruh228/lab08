@@ -1,0 +1,26 @@
+name: Build
+run-name: ${{ github.actor }} compiling based on CMakeLists.txt
+on: [push]
+jobs:
+  compile_on_ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install docker
+        run: |
+          sudo apt-get remove containerd.io
+          sudo apt install docker.io docker-compose -y
+      - name: Run the build process with Docker
+        run: docker build -t builder .
+      - name: Run image
+        run: docker run --name test -t builder ls
+      - name: Copy log file
+        run: docker cp test:/repo/log.txt ./log.txt
+      - name: Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux_artifacts
+          path: /home/runner/work/lab08/lab08/log.txt
